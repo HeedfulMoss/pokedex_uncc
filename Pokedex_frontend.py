@@ -1,10 +1,26 @@
 # pokedex_frontend.py
+import requests
+from bs4 import BeautifulSoup
 import streamlit as st
 from Pokemon_database import pokemon_data  # Import the pokemon data
 
 # Function to get Pokémon info from the database
 def get_pokemon_info(name):
     return pokemon_data.get(name)
+
+# Function to get Pokémon image URL using PokeAPI and GitHub CDN
+def get_pokemon_image_url(pokemon_name):
+    try:
+        api_url = f"https://pokeapi.co/api/v2/pokemon/{pokemon_name.lower()}"
+        response = requests.get(api_url)
+        if response.status_code == 200:
+            data = response.json()
+            pokemon_id = data['id']
+            image_url = f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemon_id}.png"
+            return image_url
+    except Exception as e:
+        st.warning(f"Image not found for {pokemon_name}: {e}")
+    return None
 
 # Main app function
 def main():
@@ -32,6 +48,11 @@ def main():
             # Left side (your Pokémon)
             with col1:
                 st.subheader(pokemon1['name'])
+
+                image_url1 = get_pokemon_image_url(pokemon1['name'])
+                if image_url1:
+                    st.image(image_url1, caption=pokemon1['name'], use_container_width=True)
+
                 st.write(f"**Types**: {', '.join(pokemon1['types'])}")
                 st.write(f"**Weak Against**: {', '.join(pokemon1['weak_against'])}")
                 st.write(f"**Strong Against**: {', '.join(pokemon1['strong_against'])}")
@@ -42,11 +63,16 @@ def main():
             # Right side (opposing Pokemon)
             with col2:
                 st.subheader(pokemon2['name'])
+
+                image_url2 = get_pokemon_image_url(pokemon2['name'])
+                if image_url2:
+                    st.image(image_url2, caption=pokemon2['name'], use_container_width=True)
+
                 st.write(f"**Types**: {', '.join(pokemon2['types'])}")
                 st.write(f"**Weak Against**: {', '.join(pokemon2['weak_against'])}")
                 st.write(f"**Strong Against**: {', '.join(pokemon2['strong_against'])}")
         else:
-            st.error("Error for collum portion")
+            st.error("Could not retrieve Pokémon data.")
 
 if __name__ == "__main__":
     main()
