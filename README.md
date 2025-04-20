@@ -1,5 +1,21 @@
 # pokedex_uncc
 
+## Current Project Structure:
+```
+├── docker-compose.yml
+├── pokemon_data.json
+├── types/
+│   └── [type images (.png files)]
+├── frontend/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── streamlit_app.py
+└── backend/
+    ├── Dockerfile
+    ├── main.py
+    └── requirements.txt
+```
+
 ## Commands:
 ### 1. Running docker container/app in detached mode
 ```

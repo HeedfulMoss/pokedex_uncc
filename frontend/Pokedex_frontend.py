@@ -1,32 +1,49 @@
-# pokedex_frontend.py
-import requests
-import json
-from bs4 import BeautifulSoup
 import streamlit as st
+import requests
 import os
 from PIL import Image
 
+# Backend API URL (this will be the service name in docker-compose)
+BACKEND_URL = "http://backend:8000"
 
-with open('pokemon_data.json', 'r') as p:
-    pokemon_data = json.load(p)
-
-# Function to get Pokémon info from the database
-def get_pokemon_info(name):
-    return pokemon_data.get(name)
-
-# Function to get Pokémon image URL using PokeAPI and GitHub CDN
-def get_pokemon_image_url(pokemon_name):
+# Function to get all Pokémon names from the API
+def get_pokemon_names():
     try:
-        api_url = f"https://pokeapi.co/api/v2/pokemon/{pokemon_name.lower()}"
-        response = requests.get(api_url)
+        response = requests.get(f"{BACKEND_URL}/pokemon")
         if response.status_code == 200:
-            data = response.json()
-            pokemon_id = data['id']
-            image_url = f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemon_id}.png"
-            return image_url
+            return response.json()["pokemon"]
+        else:
+            st.error(f"Failed to fetch Pokémon list: {response.status_code}")
+            return []
     except Exception as e:
-        st.warning(f"Image not found for {pokemon_name}: {e}")
-    return None
+        st.error(f"Error connecting to backend: {e}")
+        return []
+
+# Function to get Pokémon info from the API
+def get_pokemon_info(name):
+    try:
+        response = requests.get(f"{BACKEND_URL}/pokemon/{name}")
+        if response.status_code == 200:
+            return response.json()
+        else:
+            st.error(f"Failed to fetch data for {name}: {response.status_code}")
+            return None
+    except Exception as e:
+        st.error(f"Error connecting to backend: {e}")
+        return None
+
+# Function to get Pokémon image URL from the API
+def get_pokemon_image_url(name):
+    try:
+        response = requests.get(f"{BACKEND_URL}/pokemon/{name}/image")
+        if response.status_code == 200:
+            return response.json()["image_url"]
+        else:
+            st.warning(f"Image not found for {name}")
+            return None
+    except Exception as e:
+        st.warning(f"Error fetching image for {name}: {e}")
+        return None
 
 def render_type_images(types_list, scale=1.5):
     cols = st.columns(3)
@@ -45,8 +62,12 @@ def render_type_images(types_list, scale=1.5):
 def main():
     st.title("Pokedex - Matchups")
 
-    # Dropdown menus for selecting two Pokémon
-    pokemon_names = list(pokemon_data.keys())  # Extract Pokémon names from the data
+    # Get Pokémon names from the API
+    pokemon_names = get_pokemon_names()
+    
+    if not pokemon_names:
+        st.error("Could not load Pokémon data. Please make sure the backend is running.")
+        return
     
     # User selects Pokémon
     pokemon1_name = st.selectbox("Choose your Pokemon", pokemon_names)
