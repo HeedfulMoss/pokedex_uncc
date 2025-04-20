@@ -1,8 +1,11 @@
 # pokedex_frontend.py
 import requests
+import json
 from bs4 import BeautifulSoup
 import streamlit as st
-from Pokemon_database import pokemon_data  # Import the pokemon data
+
+with open('pokemon_data.json', 'r') as p:
+    pokemon_data = json.load(p)
 
 # Function to get Pokémon info from the database
 def get_pokemon_info(name):
