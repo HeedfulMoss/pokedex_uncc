@@ -1,5 +1,4 @@
-# Creating a database for Kanto Region Pokémon
-pokemon_data = {
+{
     "Bulbasaur": {
         "name": "Bulbasaur",
         "types": ["Grass", "Poison"],
@@ -113,7 +112,7 @@ pokemon_data = {
         "types": ["Normal"],
         "weak_against": ["Fighting"],
         "strong_against": []
-    }, # type: ignore
+    },
     "Raticate": {
         "name": "Raticate",
         "types": ["Normal"],
@@ -168,22 +167,6 @@ pokemon_data = {
         "weak_against": ["Water", "Ice", "Grass"],
         "strong_against": ["Fire", "Electric", "Poison"]
     },
-    
-    
-    
-    
-    
-    
-    
-    ##What we do for the gender?
-    
-    
-    
-    
-    
-    
-    
-    
     "Nidoran♀": {
         "name": "Nidoran♀",
         "types": ["Poison"],
@@ -202,15 +185,6 @@ pokemon_data = {
         "weak_against": ["Water", "Ice", "Ground", "Psychic"],
         "strong_against": ["Grass", "Fairy"]
     },
-    
-    
-
-
-##What to do about the gender
-
-
-
-    
     "Nidoran♂": {
         "name": "Nidoran♂",
         "types": ["Poison"],
@@ -931,51 +905,4 @@ pokemon_data = {
         "weak_against": ["Ghost", "Bug", "Dark"],
         "strong_against": ["Fighting", "Poison"]
     }
-
-
-
-    ##To here eveything is good.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-# Function to display Pokémon information
-#def display_pokemon_info(pokemon_name):
-#    if pokemon_name in pokemon_database:
-#        pokemon = pokemon_database[pokemon_name]
-#        print(f"Name: {pokemon['name']}")
-#        print(f"Types: {', '.join(pokemon['types'])}")
-#        print(f"Weak against: {', '.join(pokemon['weak_against'])}")
-#        print(f"Strong against: {', '.join(pokemon['strong_against'])}")
-#    else:
-#        print(f"Pokemon {pokemon_name} not found in the database!")
-
-
-# Display Bulbasaur's data as a test
-#display_pokemon_info("Bulbasaur")
