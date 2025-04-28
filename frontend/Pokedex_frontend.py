@@ -4,7 +4,7 @@ import os
 from PIL import Image
 
 # Backend API URL (this will be the service name in docker-compose)
-BACKEND_URL = "http://backend:8000"
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # Function to get all Pokémon names from the API
 def get_pokemon_names():

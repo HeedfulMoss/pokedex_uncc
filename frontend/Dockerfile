@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Make sure the types directory is available
-RUN mkdir -p types
+#RUN mkdir -p types
 
 EXPOSE 8501
 

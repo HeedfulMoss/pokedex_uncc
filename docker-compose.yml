@@ -1,22 +1,72 @@
 version: '3.12'
 
 services:
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=pokemon_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    volumes:
+      - ./backend:/backend
+      - ./pokemon_data.json:/backend/pokemon_data.json
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/pokemon_db
+    command: >
+      bash -c "uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+
   frontend:
     build: ./frontend
     ports:
       - "8501:8501"
     volumes:
       - ./frontend:/app
-      - ./types:/app/types  # Mount the types directory for access to type images
+      - ./types:/app/types
     depends_on:
       - backend
     environment:
       - BACKEND_URL=http://backend:8000
 
-  backend:
-    build: ./backend
-    volumes:
-      - ./backend:/backend
-      - ./pokemon_data.json:/backend/pokemon_data.json  # Mount the Pokemon data
-    ports:
-      - "8000:8000"  # Expose the API port
+volumes:
+  postgres_data:
+
+
+# version: '3.12'
+
+# services:
+#   frontend:
+#     build: ./frontend
+#     ports:
+#       - "8501:8501"
+#     volumes:
+#       - ./frontend:/app
+#       - ./types:/app/types  # Mount the types directory for access to type images
+#     depends_on:
+#       - backend
+#     environment:
+#       - BACKEND_URL=http://backend:8000
+
+#   backend:
+#     build: ./backend
+#     volumes:
+#       - ./backend:/backend
+#       - ./pokemon_data.json:/backend/pokemon_data.json  # Mount the Pokemon data
+#     ports:
+#       - "8000:8000"  # Expose the API port

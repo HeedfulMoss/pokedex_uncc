@@ -1,8 +1,21 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
+
+from models import Base, Pokemon, Type
+from init_db import init_database
+
 import json
 import requests
 import os
+import uvicorn
+
+# Database connection
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@postgres:5432/pokemon_db")
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 app = FastAPI(title="Pokemon API")
 
@@ -15,9 +28,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load the Pokemon data
-with open('pokemon_data.json', 'r') as file:
-    pokemon_data = json.load(file)
+# Dependency to get the database session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @app.get("/")
 def read_root():
@@ -27,19 +44,32 @@ def read_root():
 @app.get("/pokemon")
 def get_pokemon_list():
     """Get a list of all Pokemon names"""
-    return {"pokemon": list(pokemon_data.keys())}
+    pokemon_list = db.query(Pokemon.name).all()
+    return {"pokemon": [pokemon[0] for pokemon in pokemon_list]}
 
 @app.get("/pokemon/{name}")
-def get_pokemon_info(name: str):
+def get_pokemon_info(name: str, db: Session = Depends(get_db)):
     """Get detailed information about a specific Pokemon"""
-    if name not in pokemon_data:
+    pokemon = db.query(Pokemon).filter(Pokemon.name == name).first()
+    
+    if not pokemon:
         raise HTTPException(status_code=404, detail=f"Pokemon {name} not found")
-    return pokemon_data[name]
+    
+    # Format the response to match the JSON structure expected by the frontend
+    return {
+        "name": pokemon.name,
+        "types": [type.name for type in pokemon.types],
+        "weak_against": [type.name for type in pokemon.weak_against],
+        "strong_against": [type.name for type in pokemon.strong_against]
+    }
 
 @app.get("/pokemon/{name}/image")
-def get_pokemon_image(name: str):
+def get_pokemon_image(name: str, db: Session = Depends(get_db)):
     """Get the image URL for a specific Pokemon"""
-    if name not in pokemon_data:
+    # Check if the Pokemon exists
+    pokemon = db.query(Pokemon).filter(Pokemon.name == name).first()
+    
+    if not pokemon:
         raise HTTPException(status_code=404, detail=f"Pokemon {name} not found")
     
     try:
@@ -55,6 +85,10 @@ def get_pokemon_image(name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching Pokemon image: {str(e)}")
 
+# Initialize database on startup
+@app.on_event("startup")
+async def startup_event():
+    init_database()
+
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
