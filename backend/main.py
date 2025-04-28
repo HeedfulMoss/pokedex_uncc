@@ -42,7 +42,7 @@ def read_root():
     return {"status": "Pokemon API is running"}
 
 @app.get("/pokemon")
-def get_pokemon_list():
+def get_pokemon_list(db: Session = Depends(get_db)):
     """Get a list of all Pokemon names"""
     pokemon_list = db.query(Pokemon.name).all()
     return {"pokemon": [pokemon[0] for pokemon in pokemon_list]}
